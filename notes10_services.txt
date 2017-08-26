@@ -223,12 +223,57 @@ NOTIFICATIONS
 		}
 	}
 
+    public static void clearAllNotifications(Context context) {
+        NotificationManager notificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.cancelAll();
+    }
+
+	
+NOTIFICATION ACTIONS
+--------------------
+	
+
+
+	
+    public static NotificationCompat.Action drinkWaterAction(Context context) {
+        Intent intent = new Intent(context, WaterReminderIntentService.class);
+        intent.setAction(ReminderTasks.ACTION_INCREMENT_WATER_COUNT);
+        PendingIntent pendingIntent = PendingIntent.getService(
+                context,
+                ACTION_DRINK_PENDNG_INTENT_ID,
+                intent,
+                PendingIntent.FLAG_CANCEL_CURRENT);
+        NotificationCompat.Action action = new NotificationCompat.Action(
+                R.drawable.ic_local_drink_black_24px,
+                "I did it!",
+                pendingIntent
+        );
+        return action;
+    }
+	
+
+	NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context)
+			.setColor(ContextCompat.getColor(context, R.color.colorPrimary))
+			.setSmallIcon(R.drawable.ic_drink_notification)
+			.setLargeIcon(largeIcon(context))
+			.setContentTitle(context.getString(R.string.charging_reminder_notification_title))
+			.setContentText(context.getString(R.string.charging_reminder_notification_body))
+			.setStyle(new NotificationCompat.BigTextStyle().bigText(
+					context.getString(R.string.charging_reminder_notification_body)))
+			.setDefaults(Notification.DEFAULT_VIBRATE)
+			.setContentIntent(contentIntent(context))
+			// TODO (17) Add the two new actions using the addAction method and your helper methods
+			.addAction(drinkWaterAction(context))
+			.addAction(ignoreReminderAction(context))
+			.setAutoCancel(true);
+ 
+	// Can call setAction up to 3 times on the builder
+ 
+ 
+--------------------------
 
 
 
- 
- 
- 
  
  
  
