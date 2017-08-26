@@ -146,13 +146,83 @@ REGISTER IN ANDROID MANIFEST
 		</application>
 	</manifest>
  
-------------------------
+-------------
+NOTIFICATIONS
+-------------
+
+	https://developer.android.com/guide/topics/ui/notifiers/notifications.html
+	https://material.io/guidelines/patterns/notifications.html
+
+ - JELLYBEAD: Actions
+ - LOLIPOP: New template types + heads up notifications + android wear
+ - NOUGAT: changes layout to allways specify the app sending the notification, allows for inline replies and adds the ablity to specify custom layouts for headsup and custom notifications
+ 
+ - Notifications on Android are displayed by a system service called NotificationManager
+ - System services are separate processes that are started by the Android system itself
 
  
+PENDING INTENTS
+---------------
+
+	https://developer.android.com/reference/android/app/PendingIntent.html
+
+ - Regular intents allow an app to launch activities within the same app of from other apps, either explicitly or implicitly
+ - Launching other apps or services from another app, requires the manifest to include the appropriate permissions
+ - Pending intent is a wrapper arrount an intent that is designed to be used by another application
+ - It gives the other application the ability to perform the included action as is it were the application that gemerated 
+  the pending intent, with all the permissions the later has been granted
+    - It can launch services, private activities and broadcast protected intents
+	- Even if the target application is no longer running
+ - Usefull to start activities from notifications
  
+ - Create with:
+	PendingIntent.getActivity(Context context, int requestCode, Intent intent, int flags)
+		- Context in which the pending intent shoud start the activity
+		- requestCode private requestCode for the sender, make sure it is unique per pending intent
+		- Intent to run in our app 
+		- flags - what to do when we have several pending intents for the same intent ... update or cancel current ...
+	PendingIntent.getService()
+	PendingIntent.getBroadcast()
+	
+NOTIFICATIONS
+-------------
+
+	https://developer.android.com/training/notify-user/build-notification.html
+	https://developer.android.com/training/notify-user/expanded.html
+	https://developer.android.com/reference/android/app/Notification.BigPictureStyle.html
  
- 
- 
+    <uses-permission android:name="android.permission.VIBRATE"/>
+
+	public class NotificationUtils {
+		private static final int WATER_REMINDER_PENDING_INTENT_ID = 123;
+		private static final int WATER_REMINDER_NOTIFICATION_ID = 33423;
+		// https://developer.android.com/training/notify-user/build-notification.html
+		public void remindUserBecauseCharging(Context context) {
+			NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
+					.setColor(ContextCompat.getColor(context,R.color.colorPrimary))
+					.setSmallIcon(R.drawable.ic_drink_notification)
+					.setLargeIcon(largeIcon(context))
+					.setContentTitle(context.getString(R.string.charging_reminder_notification_title))
+					.setContentText(context.getString(R.string.charging_reminder_notification_body))
+					.setStyle(new NotificationCompat.BigTextStyle().bigText(context.getString(R.string.charging_reminder_notification_body)))
+					.setDefaults(Notification.DEFAULT_VIBRATE)
+					.setContentIntent(contentIntent(context))
+					.setAutoCancel(true);   // auto cancel - Cancels the notification when the users clicks on it
+			NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+			notificationManager.notify(WATER_REMINDER_PENDING_INTENT_ID,builder.build());
+		}
+		private PendingIntent contentIntent(Context context) {
+			Intent intent = new Intent(context, MainActivity.class);
+			return PendingIntent.getActivity(context,WATER_REMINDER_NOTIFICATION_ID,intent,PendingIntent.FLAG_UPDATE_CURRENT);
+		}
+		private static Bitmap largeIcon(Context context) {
+			return BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_local_drink_black_24px);
+		}
+	}
+
+
+
+
  
  
  
