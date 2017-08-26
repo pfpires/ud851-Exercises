@@ -208,6 +208,9 @@ NOTIFICATIONS
 					.setDefaults(Notification.DEFAULT_VIBRATE)
 					.setContentIntent(contentIntent(context))
 					.setAutoCancel(true);   // auto cancel - Cancels the notification when the users clicks on it
+			if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN) {
+				builder.setPriority(Notification.PRIORITY_HIGH);
+			}
 			NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 			notificationManager.notify(WATER_REMINDER_PENDING_INTENT_ID,builder.build());
 		}
