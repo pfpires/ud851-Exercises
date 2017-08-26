@@ -273,38 +273,206 @@ NOTIFICATION ACTIONS
 --------------------------
 
 
+-------------------
+FOREGROUND SERVICES
+-------------------
+ 
+ - Service that the user is activelly aware of via a non-dismissable ongoing notification
+ - Android will prioritize foreground services even if the system is memory constrained
+ - Examples: google maps or google play music
+
+--------------------
+APPLICATION PRIORITY
+--------------------
+
+CRITICAL      | Active Apps
+              | Foreground Services
+
+HIGH          | Visible Processes
+
+MEDIUM        | Service Processes
+
+LOW           | Background Processes
+              | Empty Processes
+
+ - Within each bucket the apps are prioritized in a queue
+   - App that is in the lowest priority for the longuest the first in line to be executed
+
+   
+ 1 - Android will keep all apps that interact with the user running smoothly
+ 2 - Android will keep all apps with visible activities, followed by services, running. Unless this volates 1.
+ 3 - Android will keep all apps in the background running. Unless this volates 1.
+
+------------
+JobScheduler
+------------
+
+ - Introduced in Android L (Lolypop)
+ - Compatible with API 21 and onwards ...
+
+	JobScheduler js = (JobScheduler)context.getSystemSevice(Context.JOB_SCHEDULER_SERVICE);
+	JobInfo job = new JobInfo.Builder(MY_BACKGROUND_JOB,new ComponentName(context,MyJobService.class))
+		.setRequiredNetworkType(JobInfo.NETWORK_TYOE_UNMETERED)
+		.setRequiresCharging(true)
+		.setBackoffCriteria(TWO_MINUTES,BACKOFF_POLICY_EXPONENCIAL)
+		.setMinimumLatency(FIFTEEN_MINUTES)
+		.build();
+	js.schedule(job)
+
+---------------------
+FirebaseJobDispatcher
+---------------------
+
+	https://github.com/firebase/firebase-jobdispatcher-android
+
+ - Compatible with API 9 (Gingerbread) and onwards ...
+ 
+	compile 'com.firebase:firebase-jobdispatcher:0.8.0'
+	
+	Driver driver = new GooglePlayDriver(context);
+	FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(driver);
+	Job myJob = dispatcher.newJobBuilder()
+		// the JobService that will be called
+		.setService(MyJobService.class)
+		// uniquely identifies the job
+		.setTag("complex-job")
+		// one-off job
+		.setRecurring(false)
+		// don't persist past a device reboot
+		.setLifetime(Lifetime.UNTIL_NEXT_BOOT)
+		// start between 0 and 15 minutes (900 seconds)     
+		.setTrigger(Trigger.executionWindow(0, 900))	// Start netween 0 secs from now and 900 secs from now.
+		// overwrite an existing job with the same tag
+		.setReplaceCurrent(true)
+		// retry with exponential backoff 
+		.setRetryStrategy(RetryStrategy.DEFAULT_EXPONENTIAL)
+		// constraints that need to be satisfied for the job to run
+		.setConstraints(
+			// only run on an unmetered network
+			Constraint.ON_UNMETERED_NETWORK,
+			// only run when the device is charging
+			Constraint.DEVICE_CHARGING
+		)
+		.build(); 
+ 
+
+--------------------------------
+--------------------------------
+
+	<service
+		android:name=".sync.WaterReminderFirebaseJobService"
+		android:exported="false">
+		<intent-filter>
+			<action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE"/>
+		</intent-filter>
+	</service>
+
+	public class WaterReminderFirebaseJobService extends JobService {
+		private AsyncTask mBackgroundTask;
+		@Override
+		public boolean onStartJob(final JobParameters job) {
+			mBackgroundTask = new AsyncTask() {
+				@Override
+				protected Object doInBackground(Object[] params) {
+					ReminderTasks.executeTask(WaterReminderFirebaseJobService.this, ReminderTasks.ACTION_CHARGING_REMINDER);
+					return null;
+				}
+				@Override
+				protected void onPostExecute(Object o) {
+					jobFinished(job, false);
+				}
+			};
+			mBackgroundTask.execute();
+			return true;	// true means that we are still doing some work after returning (in another thread)
+		}
+		@Override
+		public boolean onStopJob(JobParameters job) {
+			if (mBackgroundTask == null) {
+				mBackgroundTask.cancel(true);
+			}
+			return true; // true means - when conditions are met, job should be retried
+		}
+	}
+
+    public static synchronized void scheduleChargingReminder(Context context) {
+        if (sInitialized) {
+            return;
+        }
+        Driver driver = new GooglePlayDriver(context);
+        FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(driver);
+        Job myJob = dispatcher.newJobBuilder()
+                .setService(WaterReminderFirebaseJobService.class)
+                .setTag(REMINDER_JOB_TAG)
+                .setConstraints(Constraint.DEVICE_CHARGING)
+                .setLifetime(Lifetime.FOREVER)
+                .setRecurring(true)
+                .setTrigger(Trigger.executionWindow(REMINFER_INTERVAL_SECONDS, REMINFER_INTERVAL_SECONDS + SYNC_FLEXTIME_SECONDS))
+                .setReplaceCurrent(true)
+                .build();
+        dispatcher.schedule(myJob);
+        sInitialized = true;
+    }
+
+	Call ReminderUtilities.scheduleChargingReminder(this); from Activity onCreate ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
  
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
+--------------------------------
+SIDE NOTE - Google Play Services
+--------------------------------
+
+What is Google Play Services
+You might be wondering what's up with the GooglePlayDriver. FirebaseJobDispatcher has a dependency on Google Play Services, which is why you need a GooglePlayDriver. So what is Google Play Services?
+
+Google Play Services is app that Google maintains which comes pre-installed on and runs in the background on many, many phones. It is essentially a collection of Services that your app can use to leverage the power of Google products. If the user has the Google Play Services apk installed (and many do) you can use Google Play Services Libraries to easily do things like use the Places API to know where your user is or integrate Google sign in. FirebaseJobDispatcher is one of the many services you can take advantage of via Google Play Services.
+
+Google choose to distribute these services as an installable apk so that updates to the services are not dependent on carrier or OEM system image updates. In general, devices running Android 2.3 (API level 9) or later and have the Google Play services app installed receive updates within a few days.
+
+Installing Google Play Services
+To test your app when using the Google Play services SDK, you must use either:
+
+A compatible Android device that runs Android 2.3 or higher and includes Google Play Store.
+The Android emulator with an AVD that runs the Google APIs platform based on Android 4.2.2 or higher.
+You can install Google Play Services on your physical device via the Google Play Store.
+
+To get Google Play Services on an emulator, you first need to make sure you have Google Play Services installed in the SDK manager:
+
+Then you need to create an emulator that uses the Google APIs:
+
+What if Google Play Services is not Available?
+In this class we are only covering FirebaseJobDispatcher. Depending on where you're located and who your users are, you might not have access to the Play Store to download Google Play Services. If this is the case, you can use an alternative to FirebaseJobDispatcher known as android-job. Android-job is very similar to FirebaseJobDispatcher, but it is not a Google maintained repository and it only offers compatibility back to API 14. The FirebaseJobDispatcher documentation contains a comparison table that you can use when making this decision.
+
+------------------------------ 
+
 -------------------------
 SIDE NOTE - PLURALIZATION
 -------------------------
@@ -330,4 +498,14 @@ Then in the MainActivity we have the following Java code to generate the correct
 
 String formattedChargingReminders = getResources().getQuantityString(R.plurals.charge_notification_count, chargingReminders, chargingReminders);
 The first usage of chargingReminder is the quantity number. It determines which version of the pluralized string to use (you must pass in a number). The second usage of chargingReminder is the number that’s actually inserted into the formatted string.
+
+---------------------------------------------------
+SIDE NOTE - UDACITY COURSES ON GOOGLE PLAY SERVICES
+---------------------------------------------------
+
+https://www.udacity.com/course/add-google-maps-to-your-android-app--ud876-4
+https://www.udacity.com/course/google-location-services-on-android--ud876-1
+https://www.udacity.com/course/google-analytics-for-android--ud876-2
+https://www.udacity.com/course/monetize-your-android-app-with-ads--ud876-3
+
 
