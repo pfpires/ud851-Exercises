@@ -1,0 +1,215 @@
+------------------------------------------------------------------------------
+LESSON 10 - Services
+------------------------------------------------------------------------------
+
+Activity
+Content Provider
+Service
+Broadcast Receiver
+
+
+Services vs Loaders
+-------------------
+
+LOADER:
+ 
+ - Loaders are tied to the Activity lifecycle
+ - Easier to make UI changes and communicate with activity
+ - Good candidates are:
+   - Query DB to populate RecyclerViewAdapter
+   - Decode an image to populate an ImageView
+ 
+SERVICE:
+
+ - Decoupled from the UI
+ - Exists when there is no UI
+ - Good candidates are:
+   - Updating a DB in the background
+	 
+Starting Services
+-----------------
+
+ - Start (a service manually)
+ - Schedule (a service)
+ - Bind (to a service)
+ 
+START SERVICE:
+
+ - Context.startService(); // Or Activity
+ - Service starts but does not interact with the activity again (fire and forget)
+ - These are called started services
+
+SCHEDULE SERVICE:
+
+ - JobService
+ - JobScheduler (Or FirebaseJobDispatcher)
+ - Allow for complex schedules (like run every 24h while on wifi)
+ 
+BOUND SERVICES:
+
+                       --------------
+ Service as a          |   Service  |
+ "Server"              --------------
+                            |  A
+                            |  |
+                            |  |
+                            V  |
+                       --------------
+ Component as a        |  Activity  |------> bindService()
+ "client"              --------------
+ 
+ - These are called bound services
+ - Component binds to service
+ - Client server model
+ - Allows for 2way comunication
+ - A service can be both bound and started
+ - https://developer.android.com/guide/components/bound-services.html
+
+---------------- 
+STARTED SERVICES
+----------------
+
+   -----------------------------------------------------------------
+   |  All Android core components (activities, content providers,  |
+   | services and broadcast receivers) start on the main thread!!! |
+   -----------------------------------------------------------------
+
+BASE SERVICE CLASS
+------------------
+   
+ - The base abstract Service class runs in the main thread
+ - Need to create a background task or AsynchTask from within the service
+ 
+Started Service Liffecycle:
+
+  - Call to startService()
+  
+  - Triggers Service.onCreate()
+  
+  - Service.onStartCommand() is called
+  
+  - Should span a thread (AsynchTask) and do the long running work in onStartCommand ...
+  
+  - SERVICE IS RUNNING
+  
+  - Call stopSelf() when done (service is stopped by itself or a client)
+  
+  - Triggers Service.onDestroy()
+  
+  - SERVICE IS DESTROYED
+
+INTENT SERVICE
+--------------
+
+ - Runs on its own thread, no new to start one owerselves
+ - Extend IntentService and overide onHandleIntent()
+ - Started simmilarly to an activity
+ 
+	Intent intent = new Intent(this,MyActivity.class);
+	startActivity(intent);
+	
+	Intent intent = new Intent(this,MyIntentService.class);
+	startService(intent);
+	
+ - Can pass info in
+ 
+	public class MyIntentService extends IntentService {
+		@Override
+		protected void onHandleIntent(Intent intent) {
+			// Do background work here ...
+		}
+	}
+	Intent intent = new Intent(this,MyIntentService.class);
+	intent.setAction("My action ...");
+	startService(intent);
+ 
+ - All Intent services run onHandleIntent in a backgroud thread, but they all run it on the same backgound thread!
+ - They run in order ... good for activities that need to occur in sequence ...
+ 
+
+REGISTER IN ANDROID MANIFEST
+----------------------------
+
+	<?xml version="1.0" encoding="utf-8"?>
+	<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+			  package="com.example.android.background">
+		<application
+			android:allowBackup="true"
+			android:icon="@mipmap/ic_launcher"
+			android:label="@string/app_name"
+			android:supportsRtl="true"
+			android:theme="@style/AppTheme">
+			<!-- ... -->
+			<service
+				android:name=".sync.WaterReminderIntentService"
+				android:exported="false" />
+		</application>
+	</manifest>
+ 
+------------------------
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+-------------------------
+SIDE NOTE - PLURALIZATION
+-------------------------
+
+	https://developer.android.com/guide/topics/resources/string-resource.html#Plurals
+
+	
+Pluralization in Android
+
+Part of Android’s robust resource framework involves a mechanism for pluralizing strings called “Quantity Strings”. In the strings.xml file for the Hydration Reminder app, you’ll see an example of how pluralization can be used:
+
+<plurals name="charge_notification_count">
+   <item quantity="zero">Hydrate while charging reminder sent %d times</item>
+   <item quantity="one">Hydrate while charging reminder sent %d time</item>
+   <item quantity="other">Hydrate while charging reminder sent %d times</item>
+</plurals>
+When you use the plural in code, you specify a quantity number. This number specifies what string should be used. In this case:
+
+if the number is zero, use <item quantity="zero">
+If the number is one, use <item quantity="one">
+otherwise use <item quantity="other">
+Then in the MainActivity we have the following Java code to generate the correct String:
+
+String formattedChargingReminders = getResources().getQuantityString(R.plurals.charge_notification_count, chargingReminders, chargingReminders);
+The first usage of chargingReminder is the quantity number. It determines which version of the pluralized string to use (you must pass in a number). The second usage of chargingReminder is the number that’s actually inserted into the formatted string.
+
