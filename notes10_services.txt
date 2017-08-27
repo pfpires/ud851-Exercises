@@ -416,6 +416,88 @@ FirebaseJobDispatcher
 	Call ReminderUtilities.scheduleChargingReminder(this); from Activity onCreate ...
 
 
+-------------------
+BROADCAST RECEIVERS
+-------------------
+
+ - System Broadcast Intents:
+	- special intents sent by the system when an event occurs on the phone
+
+	android.intent.action.SCREEN_ON
+	android.intent.action.MEDIA_MOUNTED
+	android.intent.action.HEADSET_PLUG
+	android.intent.action.BATTERY_LOW
+	android.intent.action.DOWNLOAD_COMPLETE
+	android.intent.action.AUDIO_BECOMING_NOISY
+
+ - Broadcast Receiver:
+	- Core android component that enables applications to receive intents that are broadcast by the system or by other applications
+	- Can be triggered even when the app is not running
+	
+ - Intent Filter:
+	- Expression that says what intetns should trigger a component
+	- Are used to specify which broadcasts the app is interested in
+	- Are declared in the manifest
+	- Are not specific to broadcast receivers (activities also have them)
+	
+ - Static Broadcast Receivers
+	- Are triggered whenever the broadcast intent occurs
+	- Receiver will be trigggered even if the app is offline
+	- Broadcast intents that have the flag FLAG_RECEIVER_REGISTERED_ONLY won't let us statically define a broadcast receiver
+ - Dynamic Broadcast Receivers
+	- Are tied to the app«s lifecycle
+	- Best to use these (or JobScheduling if possible)
+
+
+ - To execute code when the app isn't running
+	- Schedule a job if possible
+	- In some cases, for some events adn some old devices, a static broadcast receiver might be needed
+ - To execute code when the app is running
+	- Use a dynamic broadcast receiver
+	
+Register a Static Broadcast Receiver
+------------------------------------
+
+	<receiver android:name=".NewPictureBroadcastReceiver">
+		<intent-filter>
+			<action android:name="com.android.camera.NEW_PICTURE" />
+			<action android:name="android.hardware.action.NEW_PICTURE" />
+			<data android:mimeType="image/*" />
+		</intent-filter>
+	</receiver>
+	
+	public class NewPictureBroadcastReceiver extends BroadcastReceiver {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			// Do Stuff ...
+		}
+	}
+	
+ 
+Register a dynamic Broadcast Receiver
+-------------------------------------
+
+
+	public class HeadSetReceiver extends BroadcastReceiver {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			// Do Stuff ...
+		}
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		IntentFilter rceiveFilter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
+		mReceiver = new HeadSetReceiver();
+		registerReceiver(mReceiver, receiveFilter);
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		unregisterReceiver(mReceiver);
+	}
 
 
 
@@ -436,14 +518,28 @@ FirebaseJobDispatcher
 
 
 
+--------------------------------------
+SIDE NOTE - ADB - Android Debug Bridge
+--------------------------------------
 
+Setup ADB
+The Android Debug Bridge, or adb as it is affectionately called, is a command line tool. This means that you should be comfortable working in a terminal or shell to use this program. We touched on it briefly in the first lesson. The adb program is stored in your android SDK folder in a subfolder called platform-tools. You can find where your SDK is by going to the SDK manager and looking at the SDK location, as shown below:
 
+Once you have the sdk location, you can use adb by typing:
 
+<YOUR SDK LOCATION>/platform-tools/adb
+If you've added commands to your $PATH before, adb is a great one to add.
 
+Helpful adb Commands
+To simulate the phone being unplugged from usb charging you can use:
 
+adb shell dumpsys battery set usb 0
+or if you're on a device Android 6.0 or higher you can use:
 
+adb shell dumpsys battery unplug
+To "plug" the phone back in, just reset it's charging status using:
 
-
+adb shell dumpsys battery reset
 
  
 --------------------------------
