@@ -518,6 +518,7 @@ Register a dynamic Broadcast Receiver
 SIDE NOTE - Charging State
 --------------------------
 
+	https://developer.android.com/training/monitoring-device-state/battery-monitoring.html
 
 	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 		BatteryManager batteryManager = (BatteryManager) getSystemService(BATTERY_SERVICE);
