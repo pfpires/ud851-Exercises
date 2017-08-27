@@ -514,8 +514,20 @@ Register a dynamic Broadcast Receiver
 
 
 
+--------------------------
+SIDE NOTE - Charging State
+--------------------------
 
 
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+		BatteryManager batteryManager = (BatteryManager) getSystemService(BATTERY_SERVICE);
+		boolean isCharging = batteryManager.isCharging();
+	} else {
+		IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+		Intent batteryStatus = registerReceiver(null, ifilter);	// null as the receiver, forces android to return the sticky intent immediatly
+		int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS,0);
+		boolean isCharging = ((status == BatteryManager.BATTERY_STATUS_CHARGING) || (status == BatteryManager.BATTERY_STATUS_FULL));
+	}
 
 
 --------------------------------------
