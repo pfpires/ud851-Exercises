@@ -1,0 +1,538 @@
+----------------------------
+LESSON 06 - Preferences
+----------------------------
+
+---------------------------
+DATA PERSISTENCE IN ANDROID
+---------------------------
+
+Bundle in SaveInstanceState
+	- Stores Key Value pairs
+	- Usually used for storing state while user is interacting with the app, rotating the screen, or if systems kills the activity due to memory constraints
+	- Temporary storage, data is gone if:
+		- User presses back
+		- User restarts the phone
+		
+
+PERSISTENCE OPTION -> TYPE OF DATA SAVED -> LEGTH OF TIME SAVED
+OnSavedInstanceState  -> key/value (complex values) -> while app is open
+SharedPreferences -> key/value -> between app and phone restarts
+SQLiteDatabase -> organizes more compliaed text/numeric/boolean data -> between app and phone restarts
+Internal/External Storage -> Multimedia or larger data (files) -> between app and phone restarts
+Server (ex: Firebase) -> Data that multiple phones will access -> between app and phone restarts, deleting the app, using another phone/tablet, etc
+
+
+
+
+
+
+
+
+PREFERENCES
+-----------
+
+Crete new menu resource folder, and visualzer-menu.xml
+
+	<?xml version="1.0" encoding="utf-8"?>
+	<menu xmlns:android="http://schemas.android.com/apk/res/android"
+		xmlns:app="http://schemas.android.com/apk/res-auto">
+		<item
+			android:id="action_settings"
+			android:title="@string/pref_menu_settings"
+			app:showAsAction="never"
+			android:orderInCategory="100" />
+	</menu>
+
+In activity,
+ 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.visualizer_menu,menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_settings) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+	https://developer.android.com/training/implementing-navigation/ancestral.html
+	
+	    <activity
+            android:name=".SettingsActivity"
+            android:label="@string/pref_menu_settings"
+            android:parentActivityName=".VisualizerActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".VisualizerActivity" />
+        </activity>
+
+In SettingsActivity,
+		
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_settings);
+
+        ActionBar actionBar = this.getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            NavUtils.navigateUpFromSameTask(this);
+        }
+        return super.onOptionsItemSelected(item);
+    }
+	
+If you want to go back on home:
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+Make sure the main activity has a launch mode of singleTop:
+
+	Use android:launchMode="singleTop" to make sure that a new instance of MainActivity isn't spawned when you press the back button. Spawning a new instance of MainActivity is not memory efficient.
+
+Then, in the actual SettingsActivity you should override the home button to act like the back button:
+
+	if (id == android.R.id.home) {
+		onBackPressed();
+	}
+	
+and you should display home as up, to allow up navigation:
+
+	this.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+-----------------------------------------------------
+
+AndroidManifest.xml
+-------------------
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'com.android.support:appcompat-v7:25.1.0'
+    // TODO (1) Add the gradle dependency for the support preference fragment
+    compile 'com.android.support:preference-v7:25.1.0'
+}
+
+new "Directory" under res -> res/xml
+new "XML Resource File" -> "pref_visualizer.xml"
+
+	<?xml version="1.0" encoding="utf-8"?>
+	<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+		xmlns:app="http://schemas.android.com/apk/res-auto">
+		<CheckBoxPreference
+			android:key="show_bass"
+			android:defaultValue="true"
+			android:summaryOff="Hidden"
+			android:summaryOn="Shown"
+			android:title="Show Bass" />
+
+	</PreferenceScreen>
+
+Create a SettingsFragmant class
+
+	public class SettingsFragment extends PreferenceFragmentCompat {
+		@Override
+		public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+			addPreferencesFromResource(R.xml.pref_visualizer);
+		}
+	}
+
+In res/values/styles.xml add a style for the pref fragment
+
+	<resources>
+
+		<!-- Base application theme. -->
+		<style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+			<!-- Customize your theme here. -->
+			<item name="colorPrimary">@color/colorPrimary</item>
+			<item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+			<item name="colorAccent">@color/colorAccent</item>
+			<!-- TODO (6) Add a theme for the preference -->
+			<item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
+		</style>
+
+	</resources>
+
+Replace the contents of the activity_settings.xml layout with the fragment:
+
+	<?xml version="1.0" encoding="utf-8"?>
+	<fragment xmlns:android="http://schemas.android.com/apk/res/android"
+		android:id="@+id/activity_settings"
+		android:name="android.example.com.visualizerpreferences.SettingsFragment"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent" />
+
+------------------------------------------------------------------------
+
+WRITE TO SHARED PREFERENCES:
+	The fragment writes to the SharedPreferences file automatically
+	If we need to do it programmatically:
+		SharedPreferences.Editor editor = sharedPreferences.edit();
+		editor.putBoolean("my_key",true);
+		editor.apply(); // performs the update off the main thread (there is also commit())
+		
+READING FROM SHARED PREFERENCES:
+
+	SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+	sharedPreferences.getBoolean("my_key",<default>);
+
+	https://developer.android.com/reference/android/preference/PreferenceManager.html
+	
+	There can be more than one preferences file in the same context. In this case use PreferenceManager.getSharedPreferences()
+	
+---------------------------------------------------------------------------------
+
+USE RESOURCES:
+
+	res/values/strings.xml
+	
+		<string name="pref_show_bass_label">Show Bass</string>
+		<string name="pref_show_bass_key" translatable="false">show_bass</string>
+		<string name="pref_show_true">Shown</string>
+		<string name="pref_show_false">Hidden</string>
+
+	res/values/bools.xml (create it if it doesn't exist -> new values resource file)
+
+		<?xml version="1.0" encoding="utf-8"?>
+		<resources>
+			<bool name="pref_show_bass_default">true</bool>
+		</resources>	
+		
+	res/xml/pref_visualizer.xml
+	
+		<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+			<!-- TODO (2) Create a res->bools.xml file and create a boolean for this default value -->
+			<!-- TODO (3) Update these values to be values from resource files and not hard coded -->
+			<CheckBoxPreference
+				android:defaultValue="@bool/pref_show_bass_default"
+				android:key="@string/pref_show_bass_key"
+				android:summaryOff="@string/pref_show_false"
+				android:summaryOn="@string/pref_show_true"
+				android:title="@string/pref_show_bass_label" />
+		</PreferenceScreen>
+
+
+	SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+	//sharedPreferences.getBoolean("show_bass",true);
+	sharedPreferences.getBoolean(getString(R.string.pref_show_bass_key),getResources().getBoolean(R.bool.pref_show_bass_default));
+
+------------------------------------------------------------------
+
+PREFERENCE CHANGE LISTENER:
+
+In each activity that uses the setting:
+
+	implement the SharedPreferences.OnSharedPreferenceChangeListener interface
+
+	override the onSharedPreferenceChanged
+	
+		@Override
+		public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+			if(key.equals(getString(R.string.pref_show_bass_key))){
+				mVisualizerView.setShowBass(
+					sharedPreferences.getBoolean(key,getResources().getBoolean(R.bool.pref_show_bass_default))
+				);
+			}
+		}
+
+	register the OnSharedPreferenceChangeListener during onCreate
+	
+		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+		sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+
+	unregister the OnSharedPreferenceChangeListener during onDestroy
+	
+		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+		sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
+	
+----------------------------------------------------------------------------
+
+LIST PREFERENCES:
+
+	res/values/strings.xml
+	
+		<resources>
+			<!-- ... -->
+			<string name="pref_color_key" translatable="false">color</string>
+			<string name="pref_color_label">Shape Color</string>
+			<string name="pref_color_label_red">Red</string>
+			<string name="pref_color_label_blue">Blue</string>
+			<string name="pref_color_label_green">Green</string>
+			<string name="pref_color_red_value" translatable="false">red</string>
+			<string name="pref_color_blue_value" translatable="false">blue</string>
+			<string name="pref_color_green_value" translatable="false">green</string>
+		</resources>
+
+	res/values/arrays.xml
+	
+		<?xml version="1.0" encoding="utf-8"?>
+		<resources>
+			<array name="pref_color_option_labels">
+				<item>@string/pref_color_label_red</item>
+				<item>@string/pref_color_label_blue</item>
+				<item>@string/pref_color_label_green</item>
+			</array>
+			<array name="pref_color_option_values">
+				<item>@string/pref_color_red_value</item>
+				<item>@string/pref_color_blue_value</item>
+				<item>@string/pref_color_green_value</item>
+			</array>
+		</resources>
+	
+	res/xml/pref_visualizer.xml
+	
+	    <ListPreference
+        android:defaultValue="@string/pref_color_label_red"
+        android:entries="@array/pref_color_option_labels"
+        android:entryValues="@array/pref_color_option_values"
+        android:key="@string/pref_color_key"
+        android:title="@string/pref_color_label" />
+
+	in order to load the preference:
+	
+		sharedPreferences.getString(
+			getString(R.string.pref_color_key),
+			getString(R.string.pref_color_red_value)
+		);
+	
+-----------------------------------------------------------------
+
+PREFERENCE SUMMARY:
+
+Summary must be updated programmaticaly
+
+	To display the summary when created, on SettingsFragment, override onCreatePreferences
+
+		@Override
+		public void onCreatePreferences(Bundle bundle, String s) {
+			addPreferencesFromResource(R.xml.pref_visualizer);
+			PreferenceScreen preferenceScreen = getPreferenceScreen();
+			SharedPreferences sharedPreferences = preferenceScreen.getSharedPreferences();
+
+			int preferenceCount = preferenceScreen.getPreferenceCount();
+			for (int i = 0; i < preferenceCount; i++) {
+				Preference p = preferenceScreen.getPreference(i);
+				if (!(p instanceof CheckBoxPreference)) {
+					String value = sharedPreferences.getString(p.getKey(),"");
+					setPreferenceValue(p,value);
+				}
+			}
+
+		}
+
+		private void setPreferenceValue(Preference preference, String value) {
+			if (preference instanceof ListPreference) {
+				ListPreference listPreference = (ListPreference)preference;
+				int prefIndex = listPreference.findIndexOfValue(value);
+				if (prefIndex >= 0) {
+					// Set to the label (getEntries() is the labels array) that is associated with value
+					listPreference.setSummary(listPreference.getEntries()[prefIndex]);
+				}
+			}
+		}
+
+	
+	To update the summary, on SettingsFragment, need to implemente a OnSharedPreferenceChangeListener
+
+		@Override
+		public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+			Preference preference = findPreference(key);
+			if (preference != null) {
+				if (!(preference instanceof CheckBoxPreference)) {
+					String value = sharedPreferences.getString(preference.getKey(),"");
+					setPreferenceValue(preference,value);
+				}
+			}
+		}
+	
+	Register/unregister the OnSharedPreferenceChangeListener onCreate and onDestroy of SettingsFragment
+	
+	    @Override
+		public void onCreate(Bundle savedInstanceState) {
+			super.onCreate(savedInstanceState);
+			getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
+		}
+
+		@Override
+		public void onDestroyView() {
+			super.onDestroyView();
+			getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
+		}
+
+		
+		
+---------------------------------------------------------------------------------
+EDIT TEXT PREFERENCES:
+
+
+	res/values/strings.xml
+	
+		<resources>
+			<!-- ... -->
+			<string name="pref_size_key" translatable="false">size</string>
+			<string name="pref_size_label">Size Multiplier</string>
+			<string name="pref_size_default" translatable="false">1</string>
+		</resources>
+
+	res/xml/pref_visualizer.xml
+	
+		<EditTextPreference
+			android:key="@string/pref_size_key"
+			android:title="@string/pref_size_label"
+			android:defaultValue="@string/pref_size_default" />
+
+	on create and on change
+
+		float minSize = Float.parseFloat(sharedPreferences.getString(getString(R.string.pref_size_key),getString(R.string.pref_size_default)));
+        mVisualizerView.setMinSizeScale(minSize);
+
+			
+	Update the preference Summary correctly :
+	
+	    private void setPreferenceSummary(Preference preference, String value) {
+			if (preference instanceof ListPreference) {
+				// For list preferences, figure out the label of the selected value
+				ListPreference listPreference = (ListPreference) preference;
+				int prefIndex = listPreference.findIndexOfValue(value);
+				if (prefIndex >= 0) {
+					// Set the summary to that label
+					listPreference.setSummary(listPreference.getEntries()[prefIndex]);
+				}
+			} else if (preference instanceof EditTextPreference) {
+				preference.setSummary(values);
+			}
+		}
+
+		
+		
+----------------------------------------------------------------------------------
+
+Setting an acceptable range
+To limit the acceptable values between 0 (non inclusive) and 3 (inclusive) we opted to use a PreferenceChangeListener - this is not the same as a SharedPreferenceChangeListener. The differences are:
+
+SharedPreferenceChangeListener is triggered after any value is saved to the SharedPreferences file.
+PreferenceChangeListener is triggered before a value is saved to the SharedPreferences file. Because of this, it can prevent an invalid update to a preference. PreferenceChangeListeners are also attached to a single preference.
+Generally the flow goes like this:
+
+User updates a preference.
+PreferenceChangeListener triggered for that preference.
+The new value is saved to the SharedPreference file.
+onSharedPreferenceChanged listeners are triggered.
+Otherwise they act very similarly. In your activity you implement the Preference.OnPreferenceChangeListener, override the onPreferenceChange(Preference preference, Object newValue). The onPreferenceChange method will return either true or false, depending on whether the preference should actually be saved.
+
+Okay, so let’s take a look at the code.
+
+Step 1: Implement the OnPreferenceChangeListener:
+
+public class SettingsFragment extends PreferenceFragmentCompat implements OnSharedPreferenceChangeListener, Preference.OnPreferenceChangeListener
+Step 2: Attach the listener to the size preference in onCreatePreferences
+
+@Override
+public void onCreatePreferences(Bundle bundle, String s) {
+         /* Other preference setup code code */
+        //...
+        Preference preference = findPreference(getString(R.string.pref_size_key));
+        preference.setOnPreferenceChangeListener(this);
+}
+Step 3: Implement onPreferenceChange
+
+This code will first try to convert the preference into a number and then checks that the number is between 0 and 3. If either of these fail, a toast will be show and false is returned. By returning false, the incorrect value is not saved to shared preferences.
+
+public boolean onPreferenceChange(Preference preference, Object newValue) {
+   Toast error = Toast.makeText(getContext(), "Please select a number between 0.1 and 3", Toast.LENGTH_SHORT);
+
+   String sizeKey = getString(R.string.pref_size_key);
+   if (preference.getKey().equals(sizeKey)) {
+       String stringSize = ((String) (newValue)).trim();
+       if (stringSize.equals("")) stringSize = "1";
+       try {
+           float size = Float.parseFloat(stringSize);
+           if (size > 3 || size <= 0) {
+               error.show();
+               return false;
+           }
+       } catch (NumberFormatException nfe) {
+           error.show();
+           return false;
+       }
+   }
+   return true;
+}
+
+--------------------------------------------------------------------------------
+
+https://material.io/guidelines/patterns/settings.html
+
+search google for android settings flowchart
+
+android settings flowchart
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (C) 2016 The Android Open Source Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/weather_settings_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" />
+	
+	
+

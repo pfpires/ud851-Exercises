@@ -1,0 +1,135 @@
+----------------------------------
+LESSON 07 - Storing data in SQLite
+----------------------------------
+
+Internal Storage -> internal to the phone and private o a application
+Shared/External Storage -> nowadays this is internal to the phone, but share between apps (initially this was the external card)
+
+There is also an api for shared externa secondary storage available on mempry cards (kitkat +)
+
+
+
+----------------------------------
+
+--------
+CONTRACT
+--------
+
+	public class WaitlistContract {
+		public static final class WaitlistEntry implements BaseColumns {
+			private WaitlistEntry() {}
+			public static final String TABLE_NAME = "waitlist";
+			public static final String COLUMN_GUEST_NAME = "guestName";
+			public static final String COLuMN_PARTY_SIZE = "partySize";
+			public static final String COLuMN_TIMESTAMP = "timestamp";
+		}
+	}
+
+-------------
+CREATE THE DB
+-------------
+
+	public class WaitlistDbHelper extends SQLiteOpenHelper {
+		private static final String DATABASE_NAME = "waitlist.db";
+		private static final int DATABASE_VERSION = 1;
+		public WaitlistDbHelper(Context context) {
+			super(context, DATABASE_NAME, null, DATABASE_VERSION);
+		}
+		@Override
+		public void onCreate(SQLiteDatabase db) {
+			final String SQL_CREATE_WAITLIST_TABLE =
+					"CREATE TABLE " + WaitlistContract.WaitlistEntry.TABLE_NAME + " ( "
+							+ WaitlistContract.WaitlistEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+							+ WaitlistContract.WaitlistEntry.COLUMN_GUEST_NAME + " TEXT NOT NULL,"
+							+ WaitlistContract.WaitlistEntry.COLUMN_PARTY_SIZE + " INTEGER NOT NULL,"
+							+ WaitlistContract.WaitlistEntry.COLUMN_TIMESTAMP + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+							+ " );"
+			;
+			db.execSQL(SQL_CREATE_WAITLIST_TABLE);
+		}
+		@Override
+		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+			final String SQL_DROP_WAITLIST_TABLE =
+					"DROP TABLE IF EXISTS " + WaitlistContract.WaitlistEntry.TABLE_NAME + ";"
+					;
+			db.execSQL(SQL_DROP_WAITLIST_TABLE);
+			onCreate(db);
+		}
+	}
+	
+-------------
+QUERY THE DB
+-------------
+	
+    private SQLiteDatabase mDb;
+    WaitlistDbHelper dbHelper = new WaitlistDbHelper(this);
+	
+	WaitlistDbHelper dbHelper = new WaitlistDbHelper(this);
+	mDb = dbHelper.getWritableDatabase();
+	TestUtil.insertFakeData(mDb);
+	Cursor cursor = getAllGuests();
+	mAdapter = new GuestListAdapter(this,cursor.getCount());
+	waitlistRecyclerView.setAdapter(mAdapter);
+
+------------------
+UPDATE THE ADAPTER
+------------------
+
+    public GuestListAdapter(Context context, Cursor cursor) {
+        this.mContext = context;
+        this.mCursor = cursor;
+    }
+    @Override
+    public void onBindViewHolder(GuestViewHolder holder, int position) {
+        if(!mCursor.moveToPosition(position)) {
+            return;
+        }
+        String name = mCursor.getString(mCursor.getColumnIndex(WaitlistContract.WaitlistEntry.COLUMN_GUEST_NAME));
+        int partySize = mCursor.getInt(mCursor.getColumnIndex(WaitlistContract.WaitlistEntry.COLUMN_PARTY_SIZE));
+        holder.nameTextView.setText(name);
+        holder.partySizeTextView.setText(String.valueOf(partySize));
+    }
+    @Override
+    public int getItemCount() {
+        return mCursor.getCount();
+    }
+
+------------------
+ADD TO THE DB
+------------------
+
+
+	// Returns ID (auto increment)
+    private long addGuest(String name, int partySize) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(WaitlistContract.WaitlistEntry.COLUMN_GUEST_NAME,name);
+        contentValues.put(WaitlistContract.WaitlistEntry.COLUMN_PARTY_SIZE,partySize);
+        return mDb.insert(WaitlistContract.WaitlistEntry.TABLE_NAME,null,contentValues);
+    }
+
+In GuestListAdapter:
+	
+    public void swapCursor(Cursor newCursor) {
+        if (mCursor != null) {
+            mCursor.close();
+        }
+        mCursor = newCursor;
+        if (newCursor != null) {
+            this.notifyDataSetChanged();
+        }
+    }
+
+------------------
+REMOVE GUESTS
+------------------
+
+    public boolean removeGuest(long id) {
+        return mDb.delete(WaitlistContract.WaitlistEntry.TABLE_NAME,WaitlistContract.WaitlistEntry._ID + "=" + id, null) > 0;
+    }
+
+------------------
+
+------------------
+
+UNIQUE (" + WeatherEntry.COLUMN_DATE + ") ON CONFLICT REPLACE
+
