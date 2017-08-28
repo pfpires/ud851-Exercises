@@ -269,8 +269,34 @@ NOTIFICATION ACTIONS
  
 	// Can call setAction up to 3 times on the builder
  
- 
---------------------------
+
+NOTIFICATION ON SUNSHINE 
+------------------------
+
+ - Uses TaskStackBuilder to create the pending intent so that after a user clicks
+ the notification and it opens the detail activity, when he clicks the back button
+ the system takes him to the MainActivity.
+
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
+                    .setColor(ContextCompat.getColor(context,R.color.colorPrimary))
+                    .setSmallIcon(smallArtResourceId)
+                    .setLargeIcon(largeIcon)
+                    .setContentTitle(notificationTitle)
+                    .setContentText(notificationText)
+                    .setDefaults(Notification.DEFAULT_VIBRATE)
+                    .setAutoCancel(true);
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN) {
+                builder.setPriority(Notification.PRIORITY_HIGH);
+            }
+            Intent intent = new Intent(context, DetailActivity.class);
+            intent.setData(todaysWeatherUri);
+            PendingIntent pendingIntent = TaskStackBuilder.create(context)
+                    .addNextIntentWithParentStack(intent)
+                    .getPendingIntent(WEATHER_NOTIFICATION_ID,PendingIntent.FLAG_UPDATE_CURRENT);
+            builder.setContentIntent(pendingIntent);
+            NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.notify(WEATHER_NOTIFICATION_ID,builder.build());
+
 
 
 -------------------
