@@ -1,0 +1,111 @@
+-----------------------------
+LESSON 08 - Content Providers
+-----------------------------
+
+ - Get Permision to use the Content Provider
+ - Get the Content Resolver
+ - Pick one of the four basic actions: query, insert, update, delete
+ - Use a URI to identify the data you are reading or manipulationg
+ - If reading from the Content Provider, display the information in the UI
+
+------------------
+
+------------------
+
+    <uses-permission android:name="com.example.udacity.droidtermsexample.TERMS_READ" />
+
+------------------
+
+------------------
+
+------------------        -------------------        -------------------
+| ContentProvider|        |                 |        | ContentProvider |
+|    Contacts    | <----> | ContentResolver | <----> |      Files      |
+|                |        |                 |        |                 |
+------------------        -------------------        -------------------
+        |                     A        A                      |
+        |                     |        |                      |
+        |                     V        V                      |
+		V                 --------   --------                 V
+   -------------          | App1 |   | App2 |            -------------- 
+  / DBContacts /          --------   --------           / File System /
+  -------------                                         --------------
+
+
+  ContentResolver resolver = getContentResolver();
+  Cursor cursor = resolver.query(CONTENT_URI,null,null,null,null);
+
+Content Resolvers mediate between several apps and several content providers (synch, ipc comms, etc)
+
+query()
+insert()
+update()
+delete()
+
+
+------------------
+
+------------------
+
+	content://com.pires.pedro.mycontentprovider/data
+	
+	content provider prefix (says that the uri refers to a content provider)
+	content authority (identifies the content provider)
+	path (identifies the data in the content provider)
+	
+
+
+------------------
+
+------------------
+
+	https://developer.android.com/reference/android/provider/CalendarContract.html
+	http://udacity.github.io/DroidTermsExampleProvider-Documentation/
+	
+------------------
+
+------------------
+
+	Cursor cursor = resolver.query(CONTENT_URI,<projection>,<selection>,<seletion args>,<sort order>);
+	<projection> - which columns to retrieve
+	<selection> - where clause, how to filter
+	<selection args> - where clause, what to filter
+	<sort order> - 
+	
+When these are null it means no sorting and grap everything
+	
+------------------
+
+------------------
+
+When you first get a cursor, it is positioned at row -1 (before first row)
+
+	moveToNext() -> Moves to next row ad returns true/false(if moved pat end)
+	moveToFirst() -> Moves it back to first row
+	getColumnIndex(String heading) -> returns index from colmn name
+	get<Type>(int columnIndex) -> returns value at column index
+	getCount() -> returns the number of rows in the cursor
+	close() -> closes the cursor and frees resources
+	
+------------------
+
+------------------
+
+	Cursor cursor = ...;
+	int wordCol = cursor.getColumnIndex(BlaContract.COLUMN_WORD);
+	int defCol  = cursor.getColumnIndex(BlaContract.COLUMN_DEFEINITION);
+	while (cursor.moveToNext()) {
+		String word = cursor.getString(wordCol);
+		String def  = cursor.getString(defCol);
+		Log.v("WORD[" + word + "] DEFINITION[" + def + "]");
+	}
+
+
+
+
+------------------
+
+------------------
+
+
+

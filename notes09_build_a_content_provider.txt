@@ -1,0 +1,354 @@
+---------------------------------------
+LESSON 09 - Building a Content Provider
+---------------------------------------
+
+https://developer.android.com/guide/topics/providers/content-providers.html
+
+ - Create a Class that (a) extends from ContentProvider and (b) implement the onCreate method
+ - Register the content provider in the AndroidManifest.xml file
+ - Define URIs that identify the content provider and the data it exposes
+ - Add the URIs to the contract class
+ - Build a URIMatcher to match URI patterns to integers
+ - In the ContentProvided derived class implement required CRUD methods (query, insert, update and delete)
+
+------------------
+
+------------------
+
+	public class TaskContentProvider extends ContentProvider {
+		private TaskDbHelper mDbHelper;
+		@Override
+		public boolean onCreate() {
+			mDbHelper = new TaskDbHelper(getContext());
+			return true;
+		}
+		// ...
+	}
+
+------------------
+
+------------------
+
+	    <provider
+            android:authorities="com.example.android.todolist"
+            android:name="com.example.android.todolist.data.TaskContentProvider"
+            android:exported="false" />
+
+------------------
+
+------------------
+
+	- <scheme>://<authority>/table_name_plural
+	- <scheme>://<authority>/table_name_plural/column_name
+	- <scheme>://<authority>/table_name_plural/row_id
+	
+	- content://com.example.android.todolist/tasks
+	- content://com.example.android.todolist/tasks/priority
+	- content://com.example.android.todolist/tasks/2
+	
+with wildcards (# - stands for single integer character)
+
+	- "path" -> matches path exactly
+	- "path/#" -> matches path followed by a number
+	- "path/*" -> matches path followed by a string
+	- "path/*/other/#" -> matches path followed by a string followed by other, followed by a number
+
+	- content://com.example.android.todolist/tasks/#
+
+
+
+------------------
+
+------------------
+
+
+	public class TaskContract {
+		public static final String AUTHORITY = "com.example.android.todolist";
+		public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + AUTHORITY);
+		public static final String PATH_TASKS = "tasks";
+		public static final class TaskEntry implements BaseColumns {
+			public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_TASKS).build();
+			public static final String TABLE_NAME = "tasks";
+			// Since TaskEntry implements the interface "BaseColumns", it has an automatically produced
+			// "_ID" column in addition to the two below
+			public static final String COLUMN_DESCRIPTION = "description";
+			public static final String COLUMN_PRIORITY = "priority";
+		}
+	}
+
+------------------
+UriMatcher
+------------------
+
+    private static final int TASKS = 100;
+    private static final int TASKS_WITH_ID = 101;
+
+    public static final UriMatcher sUriMatcher = buildUriMatcher();
+
+    public static UriMatcher buildUriMatcher() {
+        UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+        uriMatcher.addURI(TaskContract.AUTHORITY,TaskContract.PATH_TASKS,TASKS);
+        uriMatcher.addURI(TaskContract.AUTHORITY,TaskContract.PATH_TASKS + "/#",TASKS_WITH_ID);
+        return uriMatcher;
+    }
+
+
+------------------
+
+------------------
+
+	onCreate(Context context)
+	Uri insert(Uri uri, ContentValues values)
+	Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder)
+	int update(Uri uri, ContentValues values, String selection, String[] selectionArgs)
+	int delete(Uri uri, String selection, String[] selectionArgs)
+	String getType(Uri uri) // Returns the mime type
+
+------------------
+
+------------------
+
+    @Override
+    public Uri insert(@NonNull Uri uri, ContentValues values) {
+        final SQLiteDatabase db = mTaskDbHelper.getWritableDatabase();
+        Uri returnUri = null;
+        switch (sUriMatcher.match(uri)) {
+            case TASKS :
+                long id = db.insert(TaskContract.TaskEntry.TABLE_NAME,null,values);
+                if (id > 0) {
+                    returnUri = ContentUris.withAppendedId(TaskContract.TaskEntry.CONTENT_URI, id);
+                } else {
+                    throw new android.database.SQLException("FAiled to insert row into " + uri);
+                }
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+        getContext().getContentResolver().notifyChange(uri,null);
+        return returnUri;
+    }
+	
+-----
+
+	ContentValues values = new ContentValues();
+	values.put(TaskContract.TaskEntry.COLUMN_DESCRIPTION,taskDesc);
+	values.put(TaskContract.TaskEntry.COLUMN_PRIORITY,mPriority);
+	Uri newUri = getContentResolver().insert(TaskContract.TaskEntry.CONTENT_URI,values);
+    if (newUri != null) {
+    	Toast.makeText(this,newUri.toString(),Toast.LENGTH_SHORT).show();
+	}
+	// [Hint] Don't forget to call finish() to return to MainActivity after this insert is complete
+    finish();
+
+------------------
+
+------------------
+
+    @Override
+    public Cursor query(@NonNull Uri uri, String[] projection, String selection,
+                        String[] selectionArgs, String sortOrder) {
+        final SQLiteDatabase db = mTaskDbHelper.getReadableDatabase();
+        Cursor cursor = null;
+        switch(sUriMatcher.match(uri)){
+            case TASKS:
+                cursor = db.query(TaskContract.TaskEntry.TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
+                break;
+            case TASK_WITH_ID:
+                // <scheme>://<authority>/tasks/#
+                String id = uri.getPathSegments().get(1); // 0 would be tasks, 1 is the number after tasks/
+                selection = "_id=?";
+                selectionArgs = new String[] {id};
+                cursor = db.query(TaskContract.TaskEntry.TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+        cursor.setNotificationUri(getContext().getContentResolver(),uri);
+        return cursor;
+    }
+
+What Does the CustomCursorAdapter do?
+The CustomCursorAdapter will inflate views using the xml layout file task_layout, and create ViewHolders that will fill the main RecyclerView.
+Each ViewHolder includes data about a single task: it’s text description and priority level. The priorityView will actually be a small colored circle that indicates the priority level 1-3 (1 is high and 3 is low).
+The priority circle is a drawable resource, and its color is assigned to red, yellow, or green based on the priority level.
+
+------------------
+
+------------------
+
+
+        return new AsyncTaskLoader<Cursor>(this) {
+            Cursor mTaskData = null;
+            @Override
+            protected void onStartLoading() {
+                if (mTaskData != null) {
+                    deliverResult(mTaskData);
+                } else {
+                    forceLoad();
+                }
+            }
+            public Cursor loadInBackground() {
+                try {
+                    return getContentResolver().query(TaskContract.TaskEntry.CONTENT_URI,null,null,null, TaskContract.TaskEntry.COLUMN_PRIORITY);
+                } catch(Exception e) {
+                    Log.e(TAG,"Failed to asynchonously load data",e);
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+            public void deliverResult(Cursor data) {
+                mTaskData = data;
+                super.deliverResult(data);
+            }
+        };
+		
+
+
+------------------
+
+------------------
+
+
+    @Override
+    public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
+        final SQLiteDatabase db = mTaskDbHelper.getWritableDatabase();
+        int deleted = 0;
+        int match = sUriMatcher.match(uri);
+        switch (match) {
+            case TASK_WITH_ID:
+                String id = uri.getPathSegments().get(1);
+                selection = "_id=?";
+                selectionArgs = new String[]{id};
+                deleted =  db.delete(
+                        TABLE_NAME,
+                        selection,
+                        selectionArgs);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+        getContext().getContentResolver().notifyChange(uri, null);
+        return deleted;
+    }
+
+		
+------------------
+
+------------------
+
+        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
+                String id = String.valueOf(viewHolder.itemView.getTag());
+                Uri uri = TaskContract.TaskEntry.CONTENT_URI.buildUpon().appendPath(id).build();
+                getContentResolver().delete(uri,"_id=?",new String[]{id});
+                getSupportLoaderManager().restartLoader(TASK_LOADER_ID, null, MainActivity.this);
+                
+            }
+        }).attachToRecyclerView(mRecyclerView);
+
+
+------------------
+
+------------------
+
+    @Override
+    public int update(@NonNull Uri uri, ContentValues values, String selection,
+                      String[] selectionArgs) {
+        int tasksUpdated;
+        int match = sUriMatcher.match(uri);
+        switch (match) {
+            case TASK_WITH_ID:
+                String id = uri.getPathSegments().get(1);
+                tasksUpdated = mTaskDbHelper.getWritableDatabase().update(TABLE_NAME, values, "_id=?", new String[]{id});
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+        if (tasksUpdated != 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+        return tasksUpdated;
+    }
+
+------------------
+
+------------------
+
+	/* getType() handles requests for the MIME type of data
+	We are working with two types of data:
+	1) a directory and 2) a single row of data.
+	This method will not be used in our app, but gives a way to standardize the data formats
+	that your provider accesses, and this can be useful for data organization.
+	For now, this method will not be used but will be provided for completeness.
+	 */
+	@Override
+	public String getType(@NonNull Uri uri) {
+		int match = sUriMatcher.match(uri);
+
+		switch (match) {
+			case TASKS:
+				// directory
+				return "vnd.android.cursor.dir" + "/" + TaskContract.AUTHORITY + "/" + TaskContract.PATH_TASKS;
+			case TASK_WITH_ID:
+				// single item type
+				return "vnd.android.cursor.item" + "/" + TaskContract.AUTHORITY + "/" + TaskContract.PATH_TASKS;
+			default:
+				throw new UnsupportedOperationException("Unknown uri: " + uri);
+		}
+	}
+
+
+------------------
+
+------------------
+
+    @Override
+    public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
+        if (sUriMatcher.match(uri) != CODE_WEATHER) {
+            return super.bulkInsert(uri,values);
+        }
+        final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        int rowsInserted = 0;
+        db.beginTransaction();
+        try {
+            for (ContentValues contentValues : values) {
+                long date = contentValues.getAsLong(WeatherContract.WeatherEntry.COLUMN_DATE);
+                if (!SunshineDateUtils.isDateNormalized(date)) {
+                    throw new IllegalArgumentException("Date must be normalized to insert");
+                }
+                long id = db.insert(WeatherContract.WeatherEntry.TABLE_NAME,null,contentValues);
+                if (id != -1) {
+                    rowsInserted++;
+                }
+            }
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+        if (rowsInserted > 0) {
+            getContext().getContentResolver().notifyChange(uri,null);
+        }
+        return rowsInserted;
+
+    }
+
+
+------------------
+
+------------------
+
+exercise 37 bulk insert - TestContentProvider assumes delete was implented
+
+------------------
+
+------------------
+
+
+
+    compile 'com.android.support.constraint:constraint-layout:1.0.0-beta4'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
