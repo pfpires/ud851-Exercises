@@ -1,0 +1,454 @@
+-----------------------------------
+LESSON 02 - Connect to the Internet
+-----------------------------------
+
+
+
+-----------------------
+LOGGING
+-----------------------
+
+	https://developer.android.com/reference/android/util/Log.html
+	
+	WTF - What a Terrible Failure
+	ERROR
+	WARN
+	INFO
+	DEBUG
+	VERBOSE
+	
+	log.[wtf|e|w|i|d|v](String tag, String message);
+
+-----------------------
+
+-----------------------
+
+	https://api.github.com/search/repositories?q=android&sort=stars
+
+Example layout:
+	
+	<?xml version="1.0" encoding="utf-8"?>
+	<LinearLayout
+		xmlns:android="http://schemas.android.com/apk/res/android"
+		android:orientation="vertical"
+		android:paddingLeft="16dp"
+		android:paddingRight="16dp"
+		android:paddingTop="16dp"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent">
+		<EditText
+			android:id="@+id/et_search_box"
+			android:textSize="22sp"
+			android:hint="Enter a query and click search"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" />
+		<TextView
+			android:id="@+id/tv_url_display"
+			android:textSize="22sp"
+			android:layout_marginTop="8dp"
+			android:hint="Search URL will show up here!"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content" />
+		<ScrollView
+			android:layout_marginTop="16dp"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content">
+			<TextView
+				android:id="@+id/tv_github_search_results_json"
+				android:textSize="18sp"
+				android:hint="Search Results will appear here ..."
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" />
+		</ScrollView>
+	</LinearLayout>
+
+kmkmk
+
+
+-------------------------
+Resources
+-------------------------
+
+What is the res Directory?
+--------------------------
+
+The res directory is where you should put things such as images, strings, and layouts. It's included in every Android project, 
+and you can see it in Android Studio here:
+
+Inside of the res directory, are sub folder for the following types of resources. You may have a subset of these directories, depending on the types of resources you're using in your app. Here are some examples
+
+Different Resource Directories
+------------------------------
+
+This information can also be found here:
+
+	https://developer.android.com/guide/topics/resources/providing-resources.html
+
+Some Common Resource Types
+--------------------------
+
+Name	What's Stored Here
+values	XML files that contain simple values, such as string or integers
+drawable	A bunch of visual files, including Bitmap file types and shapes. More information is here
+layouts	XML layouts for your app
+
+Other Resource Types
+--------------------
+
+Name	What's stored here
+animator	XML files for property animations
+anim	XML files for tween animations
+color	XML files that define state list colors
+mipmap	Drawable files for launcher icons
+menu	XML files that define application menus
+raw	Resource file for arbitrary files saved in their raw form. For example, you could put audio files here. (You might also be interested in the assets folder, depending on how you use that audio - https://developer.android.com/reference/android/content/res/AssetManager.html)
+xml	Arbitrary XML; if you have XML configuration files, this is a good place to put them
+Why Resources
+
+You should always keep things like images and layouts separate in the res folder. Keeping resource files and values 
+independent helps you easily maintain them if you need to update, say, all your button images to match a new style. The 
+Android Framework also easily allows for alternative resources that support specific device configurations such as different 
+languages or screen sizes. Providing a customized experience for users from different locations or on different devices becomes 
+increasingly important as more of the world comes online and more devices come on the market. We will see how to provide 
+alternate resources for different configurations and locals later in this course.
+
+Using Resources in XML and Java
+-------------------------------
+
+You've already seen resources in action. For example, in the MainActivity, you have already seen usage of resources. When 
+we say setContentView(R.layout.activity_main), we are referencing a resource (the activity_main.xml) file to use as the 
+layout of MainActivity. That magical looking R.layout part of the expression above is actually a static class that is 
+generated for us to reference resources in Java code. This is all described in the Android Layouts Primer.
+
+	https://classroom.udacity.com/courses/ud851/lessons/93affc67-3f0b-4f9b-b3a4-a7a26f241a86/concepts/cdbfd437-de24-4903-8f01-37c29427cb38
+	
+
+Working with strings.xml
+------------------------
+
+In Java, you can get a String saved in res -> values -> strings.xml by calling the getString method. If you’re in an Activity, 
+you can just call getString, and pass in the String resource ID. The String resource ID can be found in the strings.xml XML. 
+For example, let's look at Sunshine's strings.xml file:
+
+    <string name="today">Today</string>
+
+    <!-- For labelling tomorrow's forecast [CHAR LIMIT=15] -->
+    <string name="tomorrow">Tomorrow</string>
+
+    <!-- Date format [CHAR LIMIT=NONE] -->
+    <string name="format_full_friendly_date">
+        <xliff:g id="month">%1$s</xliff:g>, <xliff:g id="day">%2$s</xliff:g>
+    </string>
+
+The id of the String with the value "Today" is today and the id of the String with the 
+value <xliff:g id="month">%1$s</xliff:g>, <xliff:g id="day">%2$s</xliff:g> is format_full_friendly_date
+
+If you wanted to reference the Today string, you would reference it in Java by doing something like this:
+
+	String myString = getString(R.string.today);
+
+In XML, you can access a String by using the @string accessor method. For the same String defined above, you could access 
+it like this:
+
+	<TextView text=”@string/today” />
+
+For more information on String Resources check out the documentation.
+
+
+-------------------
+Menus and ActionBar
+-------------------
+
+
+Menus live in the res/menu folder. If this folder does not exist, it must be created with:
+
+	right click res -> New ...-> Android Resource Directory
+		directory name: menu
+		resource type: menu
+
+Next create an xml menu file with:
+
+	right click res/menu -> New ...-> Menu Resource File
+		name: main.xnl
+		
+			<?xml version="1.0" encoding="utf-8"?>
+			<menu xmlns:android="http://schemas.android.com/apk/res/android"
+				xmlns:app="http://schemas.android.com/apk/res-auto">
+				<item
+					android:title="@string/search"
+					android:id="@+id/action_search"
+					app:showAsAction="ifRoom"
+					android:orderInCategory="1"/>
+			</menu>
+
+In the activity that has the menu, override onCreateOptionsMenu to inflate the menu:
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+Finally override onOptionsItemSelected to respond to menu events:
+	
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (R.id.action_search == item.getItemId()) {
+            Toast.makeText(MainActivity.this,"Search menu item selected",Toast.LENGTH_LONG).show();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+
+----------------
+Toast
+----------------
+
+	Toast.makeText(MainActivity.this,"Search menu item selected",Toast.LENGTH_LONG).show();
+
+----------------
+URI
+----------------
+
+
+    public static URL buildUrl(String githubSearchQuery) {
+        Uri builtUri = Uri
+                .parse(GITHUB_BASE_URL)
+                .buildUpon()
+                .appendQueryParameter(PARAM_QUERY,githubSearchQuery)
+                .appendQueryParameter(PARAM_SORT,sortBy)
+                .build();
+        URL url = null;
+        try {
+            url = new URL(builtUri.toString());
+        } catch(MalformedURLException e) {
+            Log.e(NetworkUtils.class.getName(),"Unable to build GitHub search URL",e);
+        }
+        return url;
+    }
+
+
+-----------------
+Read from Network
+-----------------
+
+
+	public static String getResponseFromHttpUrl(URL url) throws IOException {
+        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+        try {
+            InputStream in = urlConnection.getInputStream();
+
+            Scanner scanner = new Scanner(in);
+            scanner.useDelimiter("\\A");
+
+            boolean hasInput = scanner.hasNext();
+            if (hasInput) {
+                return scanner.next();
+            } else {
+                return null;
+            }
+        } finally {
+            urlConnection.disconnect();
+        }
+    }
+
+In java regex -> "\A	The beginning of the input" (https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html)
+The use of scanner is a trick to facilitate:
+	- it buffers the data
+	- reads in chunks
+	- supports chunks of different sizes (allocates and deallocates buffers as needed) (http is not required to send content length)
+	- Handles character encoding from utf8 to utf16
+
+
+	https://stackoverflow.com/questions/309424/read-convert-an-inputstream-to-a-string
+	http://square.github.io/okhttp/
+
+----------------
+Permissions
+----------------
+
+	https://developer.android.com/guide/topics/permissions/index.html
+
+Add to AndroidManifest.xml
+	
+	<uses-permission android:name="android.permission.INTERNET" />
+	
+Without this you get a SecurityException if you try to access the internet.
+
+----------------
+AsyncTask
+----------------
+
+	https://developer.android.com/reference/android/os/AsyncTask.html
+
+In honeycomb or higher you cannot make internet calls on the main thread. You get a NetworkOnTheMainThreadException
+
+60fps -> computation should take at most 17 milliseconds
+
+	
+AsyncTask - Allows you to run a task on the a background thread, while publishing results to the UI thread
+
+AsyncTask<Params,Progress,Result> (all array types - Type ...)
+
+	Params - Parameter type sent to he task upon execution 
+	Progress - The type published to update progress during the background computation
+	Result - The type of the result of the background computation
+
+Overridable:
+
+	doInBackground()
+	onProgressUpdate()
+	onPostExecute()
+	onPreExecute()
+	
+	- to start call execute() with the Params ... (array)
+	- system calls onPreExecute() on UI thread
+	- system calls doInBackground() on another thread, with the Params
+	- if you call publishProgress with the Progress params, the system will call OnProgressUpdate() with the Progress params on the UI thread
+	- call publish progress as many time as required from doInBackground
+	- doInBackground() returns the Result params
+	- System calls onPostExecute with the Result params on the UI thread
+	
+	
+	
+	
+	public class GithubQueryTask extends AsyncTask<URL, Void, String>
+    {
+        @Override
+        protected String doInBackground(URL... params) {
+            try {
+                return NetworkUtils.getResponseFromHttpUrl(params[0]);
+            } catch (IOException e) {
+                Log.e(MainActivity.this.getClass().getName(),"Error fetching URL over network",e);
+                e.printStackTrace();
+            }
+            return null;
+        }
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            if (s != null && !"".equals(s)) {
+                mSearchResultsTextView.setText(s);
+            }
+        }
+    }
+	
+    new GithubQueryTask().execute(new URL("http://blabla.com"));
+	
+----------------
+Polish
+----------------
+
+	<?xml version="1.0" encoding="utf-8"?>
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+		xmlns:tools="http://schemas.android.com/tools"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:orientation="vertical"
+		android:paddingLeft="@dimen/activity_horizontal_margin"
+		android:paddingRight="@dimen/activity_horizontal_margin"
+		android:paddingTop="@dimen/activity_vertical_margin"
+		tools:context="com.example.android.datafrominternet.MainActivity">
+		<EditText
+			android:id="@+id/et_search_box"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:hint="Enter a query, then click Search"
+			android:textSize="22sp" />
+		<TextView
+			android:id="@+id/tv_url_display"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="8dp"
+			android:text="Click search and your URL will show up here!"
+			android:textSize="22sp" />
+		<FrameLayout
+			android:layout_width="match_parent"
+			android:layout_height="match_parent">
+			<ScrollView
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="16dp">
+				<TextView
+					android:id="@+id/tv_github_search_results_json"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="Make a search!"
+					android:textSize="18sp" />
+			</ScrollView>
+			<TextView
+				android:id="@+id/tv_error_message_display"
+				android:padding="16dp"
+				android:textSize="22sp"
+				android:text="@string/error_message"
+				android:visibility="invisible"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" />
+			<ProgressBar
+				android:id="@+id/pb_loading_indicator"
+				android:layout_gravity="center"
+				android:visibility="invisible"
+				android:layout_width="42dp"
+				android:layout_height="42dp" />
+		</FrameLayout>
+	</LinearLayout>
+
+	mProgressBar = (ProgressBar) findViewById(R.id.pb_loading_indicator);
+	
+	private void showJsonDataView() {
+        mErrorMessageTextView.setVisibility(View.INVISIBLE);
+        mSearchResultsTextView.setVisibility(View.VISIBLE);
+    }
+    private void showErrorMessage() {
+        mErrorMessageTextView.setVisibility(View.VISIBLE);
+        mSearchResultsTextView.setVisibility(View.INVISIBLE);
+    }
+	public class GithubQueryTask extends AsyncTask<URL, Void, String> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mProgressBar.setVisibility(View.VISIBLE);
+        }
+        @Override
+        protected String doInBackground(URL... params) {
+			// ...
+        }
+        @Override
+        protected void onPostExecute(String githubSearchResults) {
+            mProgressBar.setVisibility(View.INVISIBLE);
+
+            if (githubSearchResults != null && !githubSearchResults.equals("")) {
+                showJsonDataView();
+                mSearchResultsTextView.setText(githubSearchResults);
+            } else {
+                // TODO (16) Call showErrorMessage if the result is null in onPostExecute
+                showErrorMessage();
+            }
+        }
+    }
+	
+-------------------------
+JSON
+-------------------------
+
+Given the following JSON, write a function to retrieve the weather "condition".
+
+{
+   "temp": {
+      "min":"11.34",
+      "max":"19.01"
+   },
+   "weather": {
+      "id":"801",
+      "condition":"Clouds",
+      "description":"few clouds"
+   },
+   "pressure":"1023.51",
+   "humidity":"87"
+}
+
+String getCondition(String JSONString) {
+   JSONObject forecast = new JSONObject(JSONString);
+   JSONObject weather = forecast.getJSONObject("weather");
+   return weather.getString("condition");
+}
