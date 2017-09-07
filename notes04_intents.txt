@@ -1,0 +1,242 @@
+-----------------------------------
+LESSON 04 - Intents
+-----------------------------------
+
+ - Intents are messaging objects that let an app request that an activity takes place
+ - They can be seen as envelopes addresses to a component, and can have data in them (extras - primitive value tuples) 
+ - There are 
+	- Explicit intents - that specify the name of the destination componen explicitly (its class name)
+	- Implicit intents - that specify that we want an action to take place (we can pas data and get a result back)
+	such as take a picturem«, place a call, select a contact, etc ..
+ 
+-----------------------
+Explicit Intents
+-----------------------
+
+There are several ways to start an activity (including start and get back a result):
+
+	https://developer.android.com/reference/android/app/Activity.html
+
+With a explicit intent we ca do it usint the Activity.startActivity(Context,Intent) method:
+
+	Context context = this;
+	Class class = MyClass.class
+	Intent intent = new Intent(context, class);
+	startActivity(intent);
+
+The every Activity extends from Context:
+
+	- Contexts allow us to 
+		- do things that might affect an app as an whole, 
+		- or outlive the lifetime of a single activity
+	- 
+	
+--------------------------
+Passing data to activities
+--------------------------
+
+	https://developer.android.com/reference/android/content/Intent.html
+	
+Use intent put extra. Define your own key, or use a predefined string constante (defined in Intent class)
+
+	Context context = this;
+	Class class = MyClass.class
+	Intent intent = new Intent(context, class);
+	intent.putExtra(Intent.EXTRA_TEXT, "my_string_val");
+	startActivity(intent);
+	
+	---
+	
+	Intent intent = getIntent();
+	if (intent.hasExtra(Intent.EXTRA_TEXT)) {
+		String passedInText = intent.getStringExtra(Intent.EXTRA_TEXT);
+		// Do something with passedInText
+	}
+
+
+Exemple with button.
+
+	public class MainActivity extends AppCompatActivity {
+		private EditText mNameEntry;
+		private Button mDoSomethingCoolButton;		
+		@Override
+		protected void onCreate(Bundle savedInstanceState) {
+			super.onCreate(savedInstanceState);
+			setContentView(R.layout.activity_main);
+			mNameEntry = (EditText) findViewById(R.id.et_text_entry);
+			mDoSomethingCoolButton = (Button) findViewById(R.id.b_do_something_cool);
+			mDoSomethingCoolButton.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					String textEntered = mNameEntry.getText().toString();
+					Context context = MainActivity.this;
+					Class destinationActivity = ChildActivity.class;
+					Intent startChildActivityIntent = new Intent(context, destinationActivity);
+					startChildActivityIntent.putExtra(Intent.EXTRA_TEXT,textEntered);
+					startActivity(startChildActivityIntent);
+				}
+			});
+		}
+	}
+	
+	---------
+	
+	public class ChildActivity extends AppCompatActivity {
+		private TextView mDisplayText;
+
+		@Override
+		protected void onCreate(Bundle savedInstanceState) {
+			super.onCreate(savedInstanceState);
+			setContentView(R.layout.activity_child);
+			mDisplayText = (TextView) findViewById(R.id.tv_display);
+			Intent intent = getIntent();
+			if (intent.hasExtra(Intent.EXTRA_TEXT)) {
+				String passedInText = intent.getStringExtra(Intent.EXTRA_TEXT);
+				mDisplayText.setText(passedInText);
+			}
+		}
+	}
+
+--------------------------
+Implicit Intents
+--------------------------
+
+Common actions can be found in (google "common intents"):
+
+	https://developer.android.com/guide/components/intents-common.html
+
+	
+
+Web Browser	
+-----------
+
+To open a web site on the browser:
+
+	public void openWebPage(String url) {
+		Uri webpage = Uri.parse(url);
+		Intent intent = new Intent(Intent.ACTION_VIEW, webpage);
+		if (intent.resolveActivity(getPackageManager()) != null) {
+			startActivity(intent);
+		}
+	}
+	
+To respond to open URL intents from other apps:
+
+	<activity ...>
+		<intent-filter>
+			<action android:name="android.intent.action.VIEW" />
+			<!-- Include the host attribute if you want your app to respond
+				 only to URLs with your app's domain. -->
+			<data android:scheme="http" android:host="www.example.com" />
+			<category android:name="android.intent.category.DEFAULT" />
+			<!-- The BROWSABLE category is required to get links from web pages. -->
+			<category android:name="android.intent.category.BROWSABLE" />
+		</intent-filter>
+	</activity>
+
+
+Map
+---
+
+    public void onClickOpenAddressButton(View v) {
+        String addressString = "Lisbon, Portugal";
+
+        Uri.Builder builder = new Uri.Builder();
+        builder.scheme("geo")
+                .path("0,0")
+                .query(addressString);
+        Uri addressUri = builder.build();
+
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(geoLocation);
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
+        }
+	}
+
+Share TextView
+--------------
+
+    private void shareText(String textToShare) {
+        String mimeType = "text/plain";
+        String title = "Learning How to Share";
+        ShareCompat.IntentBuilder
+                /* The from method specifies the Context from which this share is coming from */
+                .from(this)
+                .setType(mimeType)
+                .setChooserTitle(title)
+                .setText(textToShare)
+                .startChooser();
+    }
+
+Sharing data is more complex than just starting an activity. Need to know what type of data it is,
+number of files and more ...
+Androd provides the class ShareCompat to help build this intents:
+
+	https://developer.android.com/reference/android/support/v4/app/ShareCompat.html
+
+
+	
+---------------------------------
+URI - Uniform Resource Identifyer
+---------------------------------
+
+	scheme://[[user:password@]host[:port]][/]path[?query][#fragment]
+	
+---------------------------------
+Media Type
+---------------------------------
+
+Initially know as MIME types (RFC 2046 - Multipurpose Internet Mail Extension)
+
+Media type string:
+
+	top level name / subtype name [; parameters]
+	
+Examples:
+
+	text/html; charset=UTF-8
+
+	text/plain
+	text/rtf
+	image/png
+	video/mp4
+
+
+	
+	
+	
+------------------------------------------------
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.android.sunshine">
+
+    <!-- This permission is necessary in order for Sunshine to perform network access. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".DetailActivity"
+            android:parentActivityName=".MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+        </activity>
+    </application>
+
+</manifest>
