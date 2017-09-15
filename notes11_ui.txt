@@ -1,0 +1,126 @@
+﻿------------------------------------------------------------------------------
+LESSON 11 - Completing the UI
+------------------------------------------------------------------------------
+
+	https://developer.android.com/guide/topics/ui/overview.html
+
+	
+Views and ViewGroups
+--------------------
+
+      ----------
+      |  View  |*-------
+      ----------       |    
+		   A           |
+		   |           |
+		   |           |
+		   |           |
+           |           |
+    ---------------    |
+	|  ViewGroup  |-----
+    ---------------
+
+	FrameLayout - Views are placed on the top left corner and are overwritten in order
+	LinearLayout - Places Views in a row (or column). Views can have a size 0dp and a layout_weight - Androif calculates the size in the LinearLayout direction, finds the free space, and distributes it to the views with 0dp and a weight, in porportion to the weights.
+	RelativeLayout - Allow to allign the views to the left, right top, bottom of the parent (corners, center) and to specify alignment relationships between views
+	GridLayout - Places elements in a grid (elements can ocupy several cells)
+	ConstraintLayout - Uses constraints to specify placement of views relative to other views, and relative scaling
+
+ViewAttributes
+--------------
+
+	witdth, height -> match_parent | wrap_content | 12dp
+	graviry -> center | left | right | top | bottom (applies to the contents of the view)
+	layout_graviry -> center | left | right | top | bottom (tell the parent layout where to place this view)
+	padding -> inside the view, and applies to the view ()
+	layout_margin ->
+	visibility -> visible (shown) | invisible (not shown but takes space an affects layout) | gone (not shown, and does not take space/affetc layout)
+	
+	
+-----------------
+ConstraintLayout
+-----------------
+
+	dependencies {
+		compile 'com.android.support.constraint:constraint-layout:1.0.2'
+	}
+
+
+BASE SERVICE CLASS
+------------------
+	
+	
+	<TextView
+        android:id="@+id/textViewPassengerLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/passenger_label"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="16dp"
+        android:layout_marginLeft="16dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:textAppearance="@style/TextAppearance.AppCompat.Caption"/>
+
+    <TextView
+        android:id="@+id/textViewPassengerName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="@string/passenger_name"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/textViewPassengerLabel"
+        android:layout_marginLeft="0dp"
+        app:layout_constraintLeft_toLeftOf="@+id/textViewPassengerLabel"
+        android:textColor="@color/colorPrimary"
+        android:textAppearance="@style/TextAppearance.AppCompat.Display1"/>
+		
+	<ImageView
+		android:id="@+id/divider"
+		android:background="@color/colorPrimaryLight"
+		android:layout_height="1dp"
+		android:layout_width="0dp"
+		app:layout_constraintLeft_toRightOf="@+id/leftRectangle"
+		app:layout_constraintRight_toLeftOf="@+id/rightRectangle"
+		app:layout_constraintTop_toBottomOf="@+id/rightRectangle"
+		app:layout_constraintBottom_toTopOf="@+id/rightRectangle"
+		app:layout_constraintHorizontal_bias="0.0"/>
+
+Tips:
+	- Use tools:text="..." instead of android:text="" for textViews that have dynamic text (that will be replace at run time) this will help designers and won't show up at run time)
+    - android:textColor="@color/colorPrimary"
+	- android:textColor="@color/colorPrimaryLight"
+	- android:textColor="@android:color/black"
+	- android:textColor="@android:color/white"
+	- android:textColor="@color/colorGood"
+	- android:textColor="@color/colorBad"
+    - android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+	- android:textAppearance="@style/TextAppearance.AppCompat.Display2"
+    - android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+	- android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+	- android:letterSpacing="0.5"
+	- android:letterSpacing="0.3"
+	- android:background="@drawable/shape_rectangle_stroke"
+	- android:background="@color/colorPrimary"
+	- android:background="@color/colorPrimaryLight"
+	- app:layout_constraintHorizontal_bias="0.0"
+	- 
+	
+
+-------------	
+Vector Assets
+-------------
+
+res -> New -> Vector Asset ... will appear under drawables
+
+resource is in xml and can edit and change values to resource strings (ex: <path android:fillColor="@color/colorPrimaryLight"  ...)
+
+
+----------------
+Hierarchy Viewer
+----------------
+
+Tools -> Android -> Android Device Monitor
+Window -> Open Perspective -> Hierarchy View
+
+No more that 80 Views per layout
+No more that 10 nested ViewGoups per layout
+
