@@ -438,4 +438,13 @@ ListView Tips
 
 </android.support.constraint.ConstraintLayout>
 
+-----------------
+Tips RecyclerView
+-----------------
+
+ - Use values-port or values-land, to overrride values in values, based on the orientation of the device.
+ - In this exercise we used it to decide to use a diferent layout for todays weather if in portrait mode
+ - Recycler view with diferent layouts for the list items
+	- Override RecyclerView.getItemViewType() and return the type (an int defined by us)
+	- In RecyclerView.onCreateViewHolder() use the type to create a diferent view for each type.
 
