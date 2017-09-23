@@ -36,6 +36,8 @@ Color Guidelines
 Font Guidelines
 ---------------
 
+	https://material.io/guidelines/style/typography.html#typography-typeface
+
 Default font: Roboto (sans-serif)
 
 Font Famaly - groups of fonts that share similar design characteristics (serif, sans-serif)
@@ -63,6 +65,105 @@ and will respont to text size global accessibility settings.
 
 		
 	
+-----------------
+Styles and Themes
+-----------------
+
+ A "Style" is an xml resource file, separate from the layouts where we can set common visual view properties 
+in one place. Then later we can apply that style to any view we want.
+
+ A "Theme" is just a style that is applied to an entire activity or application instead of a single view. It
+is created the same way as the style ...
+
+Styles
+------
+
+Styles are placed in 
+
+	res/values/styles.xml
+
+    <style name="ActivityLabelStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">80dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAppearance">?android:textAppearanceMedium</item>
+        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:background">@color/colorPrimaryLight</item>
+    </style>
+
+	(NOTE: This ?attr/ format allows you to pull any attribute out of your theme, making it easy to consolidate your theming into a single place and avoid finding/replacing across many files.)
+
+	
+Exemple for a folder style (NOTE: drawablePadding is the padding between the drawable icon and the text in a text view)
+
+    <style name="folderStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:drawablePadding">8dp</item>
+        <item name="android:paddingTop">4dp</item>
+        <item name="android:paddingBottom">4dp</item>
+        <item name="android:textSize">28sp</item>
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+
+	<TextView
+        style="@style/folderStyle"
+        android:drawableStart="@drawable/ic_sent"
+        android:drawableLeft="@drawable/ic_sent"
+        android:text="@string/sent" />
+
+ You can have style hierarchy, by specifying the parent. The child style inherits all the parents properties
+and can add new properties or override existing ones.
+
+    <style name="inboxStyle" parent="folderStyle">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+Themes
+------
+
+In styles.xml define a base app style/theme:
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+Android provides the following base themes that we can extend and customize:
+
+	Theme.AppCompat.Light.DarkActionBar
+	
+
+Then in the AndroidManifest.xml, assign the style as a theme to the app or single activities:
+
+	<?xml version="1.0" encoding="utf-8"?>
+	<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+		package="com.example.android.visualpolish">
+		<application
+			android:allowBackup="true"
+			android:icon="@mipmap/ic_launcher"
+			android:label="@string/app_name"
+->			android:supportsRtl="true"
+			android:theme="@style/AppTheme">
+			<activity android:name=".MainActivity">
+				<intent-filter>
+					<action android:name="android.intent.action.MAIN" />
+					<category android:name="android.intent.category.LAUNCHER" />
+				</intent-filter>
+			</activity>
+			<activity
+->				android:theme="@style/inboxStyle"
+				android:name=".ColorFontActivity"
+				android:label="@string/color_font_name" />
+		</application>
+	</manifest>
+
+
 -----------------
 
 -----------------
