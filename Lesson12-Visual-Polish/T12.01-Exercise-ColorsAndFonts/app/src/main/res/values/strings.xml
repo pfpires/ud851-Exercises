@@ -13,6 +13,8 @@
     <string name="condensed_34">Condensed 34sp</string>
     <string name="reg_24">Regular 24sp</string>
     <string name="medium_20">Medium 20sp</string>
+    <string name="text_16">Smallcaps 16sp</string>
+    <string name="text_16_2">My string 123 - Serif 30sp</string>
 
     <!-- Strings used in the style activity -->
     <string name="inbox">Inbox</string>

@@ -1,0 +1,69 @@
+﻿------------------------------------------------------------------------------
+LESSON 12 - Polishing the UI
+------------------------------------------------------------------------------
+
+
+---------------
+Fonts and Color
+---------------
+
+Visual Mocks and Keylines
+-------------------------
+
+Keylines define spacing and alignment of components ...
+
+
+Color Guidelines
+----------------
+
+	https://material.io/guidelines/style/color.html#color-color-palette
+	https://www.materialpalette.com/
+	
+	<?xml version="1.0" encoding="utf-8"?>
+	<resources>
+		<color name="colorPrimary">#673AB7</color>
+		<color name="colorPrimaryDark">#512DA8</color>
+		<color name="colorAccent">#FF9100</color>
+		<color name="colorPrimaryLight">#D1C4E9</color>
+	</resources>
+	
+    <View android:id="@+id/accent"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@color/colorAccent"/>
+	
+
+Font Guidelines
+---------------
+
+Default font: Roboto (sans-serif)
+
+Font Famaly - groups of fonts that share similar design characteristics (serif, sans-serif)
+
+	android:fontFamily="sans-serif-medium"
+	android:fontFamily="sans-serif"
+	android:fontFamily="sans-serif-condensed"
+	android:fontFamily="sans-serif-thin"
+	android:fontFamily="sans-serif-light"
+	android:fontFamily="sans-serif-smallcaps"
+
+Stick to same font famaly and change font color, size, and weight for diferent elements
+
+Scale-Independent Pixels, will stay the same physicat size across different resolution screens,
+and will respont to text size global accessibility settings.	
+
+    <TextView
+        android:id="@+id/text45"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/thin_italic_45"
+        android:textSize="45sp"
+        android:fontFamily="sans-serif-thin"
+        android:textStyle="italic"/>
+
+		
+	
+-----------------
+
+-----------------
+
