@@ -284,7 +284,27 @@ For the full check list and best practices follow this link:
 
 	https://developer.android.com/guide/topics/ui/accessibility/checklist.html#recommendations
 
+--------------------
+
+    <string name="format_pressure"><xliff:g id="pressure">%1.0f</xliff:g> hPa</string>
+    <string name="a11y_forecast">Forecast: <xliff:g id="condition">%1$s</xliff:g></string>
+    <string name="a11y_forecast_icon">Forecast icon: <xliff:g id="condition">%1$s</xliff:g></string>
+    <string name="a11y_high_temp">High: <xliff:g id="high">%1$s</xliff:g></string>
+    <string name="a11y_low_temp">Low: <xliff:g id="low">%1$s</xliff:g></string>
+    <string name="a11y_humidity">Humidity: <xliff:g id="humidity">%1$s</xliff:g></string>
+    <string name="a11y_pressure">Barometric Pressure: <xliff:g id="pressure">%1$s</xliff:g></string>
+    <string name="a11y_wind">Wind speed and direction: <xliff:g id="wind">%1$s</xliff:g></string>
+
 	
+    float pressure = data.getFloat(INDEX_WEATHER_PRESSURE);
+	String pressureString = getString(R.string.format_pressure, pressure);
+	String pressureStringA11y = getString(R.string.a11y_pressure,pressureString);
+	mDetailBinding.compExtraWeatherInfo.pressure.setText(pressureString);
+	mDetailBinding.compExtraWeatherInfo.pressure.setContentDescription(pressureStringA11y);
+	mDetailBinding.compExtraWeatherInfo.pressureLabel.setContentDescription(pressureStringA11y);
+
+	
+
 ---------------------------
 Localization
 ---------------------------
