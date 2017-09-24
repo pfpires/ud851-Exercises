@@ -242,5 +242,35 @@ NOTE: 600dp is the usual cutoff for 7'' tablets
 Touch Selectors
 ---------------
 
+	right-click res/ -> New -> Android Resource File
+	choose "Drawable" as the resource type, "selector" as the root element
+	give it a name (list_item_selector.zml)
+	
+	<?xml version="1.0" encoding="utf-8"?>
+	<selector xmlns:android="http://schemas.android.com/apk/res/android">
+		<item android:drawable="@color/colorPrimaryLight" android:state_pressed="true" />
+		<item android:drawable="@color/colorPrimaryLight" android:state_activated="true" />
+		<item android:drawable="@color/colorPrimaryLight" android:state_selected="true" />
+		<item android:drawable="@android:color/background_light" />
+	</selector>
+	
+(NOTE: The last item is the default, thus  it has no state attribute. It will match all states not specified in the other items)
 
+Then in the view that represents each list item, assign the drawable selector to the backgound property.
+
+
+	<?xml version="1.0" encoding="utf-8"?>
+	<LinearLayout 
+		xmlns:android="http://schemas.android.com/apk/res/android"
+		android:orientation="vertical"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+->		android:background="@drawable/list_item_selector">
+		<!-- ... -->
+	</LinearLayout>
+
+	
+---------------
+
+---------------
 
