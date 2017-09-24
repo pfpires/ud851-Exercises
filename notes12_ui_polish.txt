@@ -271,6 +271,40 @@ Then in the view that represents each list item, assign the drawable selector to
 
 	
 ---------------
-
+Tips
 ---------------
+
+Screen margins as per Android Design guidelines:
+
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="forecast_detail_horizontal_padding">32dp</dimen>
+    <dimen name="forecast_detail_vertical_padding">16dp</dimen>
+
+Screen margins sw600dp (7'' tablets and over)
+	
+	<dimen name="forecast_detail_vertical_padding">24dp</dimen>
+	
+Screen margins for landscape:
+
+    <dimen name="forecast_detail_horizontal_padding">16dp</dimen>
+    <dimen name="forecast_detail_vertical_padding">44dp</dimen>
+
+Changing the default action bar to display a logo instead of a title:
+
+	<resources>
+		<style name="AppTheme" parent="@style/Theme.AppCompat.Light.DarkActionBar">
+			<item name="colorPrimary">@color/colorPrimary</item>
+			<item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+			<item name="colorAccent">@color/colorAccent</item>
+			<item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
+		</style>
+		<style name="ActionBar.Solid.Sunshine.NoTitle" parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
+			<item name="displayOptions">useLogo|showHome</item>
+			<item name="logo">@drawable/ic_logo</item>
+		</style>
+		<style name="AppTheme.Forecast" parent="@style/AppTheme">
+			<item name="actionBarStyle">@style/ActionBar.Solid.Sunshine.NoTitle</item>
+		</style>
+	</resources>
+
 
