@@ -164,7 +164,83 @@ Then in the AndroidManifest.xml, assign the style as a theme to the app or singl
 	</manifest>
 
 
------------------
+------------------------------
+Designing for Multiple Screens
+------------------------------
 
------------------
+Density - Number of pixels in the physical area of the screen, and it's often measured in dots per inch or "dpi".
+
+Density Buckets
+---------------
+
+ - mdpi    (~160dpi) - medium
+ - hdpi    (~240dpi) - high
+ - xhdpi   (~320dpi) - extra-high
+ - xxhdpi  (~480dpi) - extra-extra-high
+ - xxxhdpi (~640dpi) - extra-extra-extra-high
+ 
+Density Independent Pixels
+--------------------------
+
+Density Independent Pixels, or "dips" / "dp" for short, are the same physical size on each device.
+
+Use dps for images and spacing, and provide images in several sizes ...
+
+
+Resource Folder Qualifiers
+--------------------------
+
+	res/
+		values/
+		layout/
+		values-fr/					// Country
+		values-fr-rCA/				// Country + Region
+		layout-desk/				// Device docked
+		layout-stylus/				// Device with stylus
+		drawable-xhdpi/				// Screen density
+		layout-land/				// Device in landscape mode
+		layout-port/				// Device in portrait mode
+		layout-sw720dp/				// Smallest available screen width
+		
+Alternative resource folders have the same folder name, a - ,followed by a qulifier
+Use values-<language>/strings.xml to provide localized string resources, translations. Goople Play publisher services can provide translations.
+
+Smallest Width Qualifier
+------------------------
+
+As of android 3.2, density buckets are deprecated, and the smallest width qualifier should be used instead.
+
+	Smallest Width Qualifier
+		-sw<size in dp>
+
+Resources will be pulled from the most specific directory, and if not found there, they will be pulled
+from the second most specific directory, and so on ... all the way to the general directory.
+
+	res/
+		layout/
+			activity_main.xml
+			detail_activity.xml
+			list_item.xml
+		layout-sw600dp/
+			detail_activity.xml
+			list_item.xml
+		layout-sw720dp/
+			list_item.xml
+
+Nexus 5 -> 360dp x 640dp - smallest width is 360dp, thus it will get all files from the layout folder (360 < 600 and 360 < 720)
+Nexus 7 2013 -> 600dp x 960dp - smallest width is 600dp, thus it will get list_item.xml and detail_activity.xml from the layout-sw600dp/ folder, and the activity_main.xml file from the layout/ folder.
+Nexus 10 -> 1280dp x 800dp - smallest width is 800dp, thus it will get list_item.xml from the layout-sw720dp/ folder, detail_activity.xml from the layout-sw600dp/ folder, and activity_main.xml from the layout/ folder.
+
+Besides layouts, the smallest width qualifier can also be used for values/ folders.
+
+	right-click res/ -> New -> Android Resource Directory
+	choose resource type, and a qualifier from the available qualifiers
+
+NOTE: 600dp is the usual cutoff for 7'' tablets
+
+---------------
+Touch Selectors
+---------------
+
+
 
