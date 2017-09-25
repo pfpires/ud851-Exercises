@@ -307,4 +307,23 @@ Changing the default action bar to display a logo instead of a title:
 		</style>
 	</resources>
 
+----------
+What Next?
+----------
 
+Since you've completed the most up to date version of Developing Android apps, you'll find that some content is Developing Advanced Android Apps is a repeat. The most important lessons for you to watch through are:
+
+	Product Quality
+	Integration Points and Error Cases
+	Accessibility and Localization
+	Libraries
+	Places
+	Building a Total Experience
+	Publishing your app.
+	
+If you are enrolled in the Nanodegree program, you'll first want to complete the next project, before moving on to our Developing Advanced Android Apps course.
+
+If you are not, go straight to the next class to continue learning!
+
+	https://www.udacity.com/course/advanced-android-app-development--ud855
+	
