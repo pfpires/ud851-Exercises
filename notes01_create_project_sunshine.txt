@@ -459,3 +459,50 @@ ConstraintLayout
 	
 	
 	
+-----------------------------------------------------------------
+NOTES: Ugrade do build tools / gradle plugin 3.0.1 and gradle 4.1 
+-----------------------------------------------------------------
+
+Main build.gradle file (in project root dir)
+--------------------------------------------
+s
+ - Change classpath to 3.0.1
+ - Add google() maven repository in allprojects
+
+	buildscript {
+		repositories {
+			jcenter()
+		}
+		dependencies {
+			classpath 'com.android.tools.build:gradle:3.0.1'
+
+			// NOTE: Do not place your application dependencies here; they belong
+			// in the individual module build.gradle files
+		}
+	}
+	
+	allprojects {
+		String osName = System.getProperty("os.name").toLowerCase();
+		if (osName.contains("windows")) {
+			buildDir = "C:/tmp/${rootProject.name}/${project.name}"
+		}
+		repositories {
+			jcenter()
+			google()
+		}
+	}
+
+gradle/wrapper/gradle-wrapper.properties
+----------------------------------------
+
+ - change distribution url to point to 4.1
+
+	#Fri Dec 22 07:08:51 GMT 2017
+	distributionBase=GRADLE_USER_HOME
+	distributionPath=wrapper/dists
+	zipStoreBase=GRADLE_USER_HOME
+	zipStorePath=wrapper/dists
+	distributionUrl=https\://services.gradle.org/distributions/gradle-4.1-all.zip
+	
+----
+
